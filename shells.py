@@ -32,17 +32,45 @@ def CheckIsMSFVenomIsInstalled():
 		return False
 
 def CheckAndGetEnvVariables():
-	def GetAndSaveInputToEnv():
+	def ValidatePortAndIP(ip, port):
+
+		Octets = ip.split(".")
+
+		if len(Octets) != 4:
+			print("Wrong IP format")
+			sys.exit()
+
+		for Octet in Octets:
+			if not Octet.isdigit() or not 0 <= int(Octet) <= 255:
+				print("Wrong IP format")
+				sys.exit() 
+
+		if not 1 <= port <= 65535:
+			print("Wrong port format")
+			sys.exit()
+
+
+
+	def GetAndSaveValidatedInputToEnv():
+
 		LHOST = input("Whats your LHOST: ")
-		LPORT = input("Whats your LPORT: ")
+
+		try:
+			LPORT = int(input("Whats your LPORT: "))
+		except ValueError:
+			print("Wrong port format")
+			sys.exit()
+
+		ValidatePortAndIP(LHOST, LPORT)
+
 		with open(EnvFile, "w" , encoding="UTF-8") as Env:
 			Env.write(f"LHOST={LHOST}\nLPORT={LPORT}")
 		load_dotenv(EnvFile, override=True)
 
 	if ResetEnv():
-		GetAndSaveInputToEnv()
+		GetAndSaveValidatedInputToEnv()
 	elif os.getenv("LHOST") is None or os.getenv("LPORT") is None:
-		GetAndSaveInputToEnv()
+		GetAndSaveValidatedInputToEnv()
 	else:
 		return False
 
